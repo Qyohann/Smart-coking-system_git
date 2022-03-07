@@ -1,8 +1,11 @@
+// 该文件用于定义路由，Vue路由是指根据url分配到对应的处理程序；作用就是解析URL，调用对应的控制器（的方法，并传递参数）。Vue路由有助于在浏览器的URL或历史记录与Vue组件之间建立链接，从而允许某些路径渲染与之关联的任何一个视图。
+// vue的路由用于对组件显示内容的切换，vue路由是全局注册，自带的组件也是全局胡策，不需要在页面的components中注册就可以使用
+// 导入一些要跳转的路由组件
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Login from '../components/Login.vue'
 import '../assets/css/global.css'
-import Home from '../components/Home.vue' // 导入路由组件
+import Home from '../components/Home.vue' // 导入路由组件，路由
 import DataUploading from '../components/coalData/DataUploading.vue'
 import CoalBlendData from '../components/coalData/CoalBlendData.vue'
 import DataAnalysis from '../components/coalData/DataAnalysis.vue'
@@ -16,12 +19,12 @@ import CoalBlendingExpert from '../components/coalBlending/CoalBlendingExpert.vu
 import cokeDigitalTwin from '../components/digitalTwin/cokeDigitalTwin.vue'
 import cokingOptimization from '../components/otherFunctions/cokingOptimization.vue'
 
-Vue.use(VueRouter)
+Vue.use(VueRouter) // 实例化路由
 
-const router = new VueRouter({
+const router = new VueRouter({ // 配置路由
   routes: [
     { path: '/', redirect: '/login' },
-    { path: '/login', component: Login },
+    { path: '/login', component: Login }, // 路由跳转的组件
     {
       path: '/home',
       component: Home,
@@ -54,4 +57,4 @@ router.beforeEach((to, from, next) => {
   next()
 })
 
-export default router
+export default router // 导出路由让其它地方可以导入该路由

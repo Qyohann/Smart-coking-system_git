@@ -7,6 +7,7 @@
             <vue-particles class='particle' linesColor="#B2B2B2" :linesWidth="1" color="#B2B2B2" :particlesNumber="150" shapeType="circle" clickMode="repulse" hoverMode="repulse"></vue-particles>
         </div>
         <div class='cards'>
+            <transition name="fade">
             <el-card class="box-card1">
                 <div class="card-header">
                     <p class='CellTitle'>煤数据处理</p>
@@ -17,6 +18,7 @@
                     <p><strong>煤化工国家标准查看:</strong>提供了20余份最新相关国家标准文件供用户在线浏览。</p>
                 </div>
             </el-card>
+            </transition>
             <el-card class="box-card2">
                 <div class="card-header">
                     <p class='CellTitle'>焦炭质量预测</p>

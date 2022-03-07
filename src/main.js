@@ -1,6 +1,7 @@
+// 整个程序的入口 main.js->app.vue->index.js
 import Vue from 'vue'
 import App from './App.vue'
-import router from './router'
+import router from './router' //  引入router文件
 import './plugins/element.js'
 import VueParticles from 'vue-particles'
 import axios from 'axios'
@@ -19,9 +20,9 @@ Vue.use(VueParticles)
 Vue.use(plTable)
 Vue.prototype.$echarts = echarts
 
-Vue.config.productionTip = false
+Vue.config.productionTip = false // 关闭浏览器控制台对环境的相关提示
 // main.js是文件的入口，作用一：实例化Vue，作用二：放置常用到的插件和CSS样式，作用三：存储全局变量
-new Vue({
+new Vue({ // 实例化vue对象
   router,
-  render: h => h(App)
-}).$mount('#app')
+  render: h => h(App) // ES6语法，渲染APP组件
+}).$mount('#app') // 手动挂载

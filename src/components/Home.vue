@@ -95,7 +95,7 @@
 </template>
 
 <script>
-export default {
+export default { // 导出组件，让其它地方可以引入该组件，下面可以加个name
   data () {
     return {
       // 设置particle的背景图像信息

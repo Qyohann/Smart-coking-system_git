@@ -218,10 +218,10 @@
 </template>
 
 <script>
-import WatchDetailed from './WatchDetailed' // 引入组件
+import WatchDetailed from './WatchDetailed' // 引入子组件
 
 export default {
-  components: { // 引入组件
+  components: { // 引入子组件
     WatchDetailed
   },
   props: {

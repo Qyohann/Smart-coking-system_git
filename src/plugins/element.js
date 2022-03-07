@@ -1,6 +1,7 @@
 import Vue from 'vue'
+// 导入Element Ui 组件
 import { Button, Form, FormItem, Input, Message, Container, Header, Aside, Main, Menu, Submenu, MenuItemGroup, MenuItem, Breadcrumb, BreadcrumbItem, Card, Row, Col, Table, TableColumn, Select, Option, MessageBox, Dialog, Pagination } from 'element-ui'
-
+import '../../node_modules/element-ui/lib/theme-chalk/base.css' // 引入动画 淡入淡出 fadein fade
 // Vue.use注册为全局组件
 Vue.use(Button)
 Vue.use(Form)
