@@ -18,7 +18,7 @@
 export default {
   created() {
     this.getCoalList()
-    this.height = window.screen.height > 850 ? window.screen.height * 0.62 : window.screen.height * 0.481 // 设置表格在不同分辨率电脑的展示大小
+    this.height = window.screen.height > 850 ? window.screen.height * 0.62 : window.screen.height * 0.43 // 设置表格在不同分辨率电脑的展示大小
   },
   data() {
     return {
@@ -100,7 +100,7 @@ export default {
     border-width: 2px;
     padding:0;
     width: 97%;
-    height: 88%;
+    height: 85%;
 }
 
 .DataClassify{

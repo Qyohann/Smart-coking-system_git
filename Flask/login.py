@@ -14,8 +14,8 @@ import pandas as pd
 from pandas.core.frame import DataFrame
 from ModelPredict import modelpredict
 
-model = keras.models.load_model('D:/Documents_summary/Code/Web front-end/Vue project/Project1/vue_shop/Flask/model_weight/predict_model.h5')
-model_expert = pd.read_pickle('D:/Documents_summary/Code/Web front-end/Vue project/Project1/vue_shop/Flask/model_weight/Model_DIS_CSR.pkl') #专家系统预测焦炭质量
+model = keras.models.load_model('./Flask/model_weight/predict_model.h5') #相对于terminal的路径
+model_expert = pd.read_pickle('./Flask/model_weight/Model_DIS_CSR.pkl') #专家系统预测焦炭质量
 
 CORS(app, supports_credentials=True) #两个文件都最好跨域
 CORS(app, resources={r'/*': {'origins': '*'}})
@@ -110,7 +110,7 @@ def getClassifyeResult():
             classify_para.append(para_dict)
             headers = ['Type','Vm','H','G','Y','b'] # csv文件头
             #csv路径
-            file_name='D:/Documents_summary/Code/Web front-end/Vue project/Project1/vue_shop/Flask/Sample.csv' 
+            file_name='./Flask/Sample.csv' 
             row = []
             row.append('Test')
             row.append(para_dict['Vm'])

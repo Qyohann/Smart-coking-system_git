@@ -314,7 +314,7 @@ export default {
   },
   created() {
     this.getCoalList()
-    this.height = window.screen.height > 850 ? window.screen.height * 0.60 : window.screen.height * 0.45 // 设置表格在不同分辨率电脑的展示大小
+    this.height = window.screen.height > 850 ? window.screen.height * 0.60 : window.screen.height * 0.41 // 设置表格在不同分辨率电脑的展示大小
   },
   watch: { // 控制表格滚轮跳转
     status (value, oldvalue) {

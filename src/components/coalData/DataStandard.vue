@@ -32,7 +32,7 @@
 <script>
 export default {
   created() {
-    this.height = window.screen.height > 850 ? window.screen.height * 0.657 : window.screen.height * 0.537 // 设置表格在不同分辨率电脑的展示大小
+    this.height = window.screen.height > 850 ? window.screen.height * 0.657 : window.screen.height * 0.50 // 设置表格在不同分辨率电脑的展示大小
   },
   data() {
     return {

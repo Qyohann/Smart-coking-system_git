@@ -18,7 +18,7 @@ export default {
   data () {
     return {
       videoSrc: require('../../assets/digitalTwin.mp4'),
-      width: '55%',
+      width: '50%',
       height: '25%',
       preload: 'auto',
       controls: true
@@ -45,7 +45,7 @@ export default {
 
 @media screen and (max-width: 1300px){ /* 笔记本 */
   .video{
-      padding-left: 22%;
+      padding-left: 25%;
   }
 }
 
