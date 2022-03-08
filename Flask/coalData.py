@@ -1,22 +1,22 @@
-from flask_sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy #Flask的SQL管理
 from flask import Flask
-from flask_cors import CORS
+from flask_cors import CORS #Flask跨域
 
 app = Flask(__name__) #2个文件只要有一个app即可
-app.config['JSON_AS_ASCII'] =False
+app.config['JSON_AS_ASCII'] =False #使JSON输出中文时格式正确
 
-CORS(app, supports_credentials=True)
-CORS(app, resources={r'/*': {'origins': '*'}})
+CORS(app, supports_credentials=True) #跨域
+CORS(app, resources={r'/*': {'origins': '*'}}) #跨域
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://qyh:qyh13860925333@127.0.0.1:3306/coaldata?charset=utf8' #访问数据库
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True #Flask-SQLAlchemy 将会追踪对象的修改并且发送信号
 
-db = SQLAlchemy(app,use_native_unicode='utf8')
+db = SQLAlchemy(app,use_native_unicode='utf8') #定义数据库
 
 #构建煤数据的表结构以及获取方法
 class CoalDataGeneration(db.Model):
-    __tablename__ = 'CoalData_table'
-    id = db.Column(db.Integer, primary_key=True)
+    __tablename__ = 'CoalData_table' #列表名
+    id = db.Column(db.Integer, primary_key=True) #数据类型+是否是主键
     #煤基本索引信息
     coal_name = db.Column(db.String(64))
     coal_belong = db.Column(db.String(64))
@@ -207,8 +207,8 @@ class CoalDataGeneration(db.Model):
         res = []
 
         for item in CoalData:
-            if item.predicted_CSR_expert and item.predicted_CSR:
-                predicted_CSR_error = round(abs(item.predicted_CSR_expert-item.predicted_CSR),2)
+            if item.predicted_CSR_expert and item.predicted_CSR: #专家系统和人工智能算法预测的焦炭质量误差
+                predicted_CSR_error = round(abs(item.predicted_CSR_expert-item.predicted_CSR),2) #取小数
             else:
                 predicted_CSR_error = ''
             res.append({
@@ -388,9 +388,61 @@ class CoalDataGeneration(db.Model):
             'coal_price': item.coal_price})
         return res
 
+# 构建blendcoal表数据，存储配煤的方案
+class BlendCoalDataStoringGeneration(db.Model):
+    __tablename__ = 'blendcoaldata_table' #列表名
+    id = db.Column(db.Integer, primary_key=True) #数据类型+是否是主键
+    #煤基本索引信息
+    first_coal = db.Column(db.String(64))
+    first_ratio = db.Column(db.Float)
+    second_coal = db.Column(db.String(64))
+    second_ratio = db.Column(db.Float)
+    third_coal = db.Column(db.String(64))
+    third_ratio = db.Column(db.Float)
+    fourth_coal = db.Column(db.String(64))
+    fourth_ratio = db.Column(db.Float)
+    fifth_coal = db.Column(db.String(64))
+    fifth_ratio = db.Column(db.Float)
+    sixth_coal = db.Column(db.String(64))
+    sixth_ratio = db.Column(db.Float)
+    seventh_coal = db.Column(db.String(64))
+    seventh_ratio = db.Column(db.Float)
+    eighth_coal = db.Column(db.String(64))
+    eighth_ratio = db.Column(db.Float)
+    ninth_coal = db.Column(db.String(64))
+    ninth_ratio = db.Column(db.Float)
+    tenth_coal = db.Column(db.String(64))
+    tenth_ratio = db.Column(db.Float)
+    predicted_CRI = db.Column(db.String(64))
+    predicted_CSR = db.Column(db.String(64))
+    predicted_M10 = db.Column(db.String(64))
+    predicted_M25 = db.Column(db.String(64))
+    predicted_M40 = db.Column(db.String(64))
+    price = db.Column(db.Float)
 
-
-
+    def response(self, CoalData=None):
+        if not CoalData:
+            return 'Error0101, the BlendCoalData is None'
+        res = []   
+        for item in CoalData:
+            res.append({
+                'id':item.id,
+                'first_coal':item.first_coal,'first_ratio':item.first_ratio,
+                'second_coal':item.second_coal,'second_ratio':item.second_ratio,
+                'third_coal':item.third_coal,'third_ratio':item.third_ratio,
+                'fourth_coal':item.fourth_coal,'fourth_ratio':item.fourth_ratio,
+                'fifth_coal':item.fourth_coal,'fifth_ratio':item.fourth_ratio,
+                'sixth_coal':item.fourth_coal,'sixth_ratio':item.fourth_ratio,
+                'seventh_coal':item.fourth_coal,'seventh_ratio':item.fourth_ratio,
+                'eighth_coal':item.fourth_coal,'eighth_ratio':item.fourth_ratio,
+                'ninth_coal':item.fourth_coal,'ninth_ratio':item.fourth_ratio,
+                'tenth_coal':item.fourth_coal,'tenth_ratio':item.fourth_ratio,
+                'predicted_CRI':item.predicted_CRI,'predicted_CSR':item.predicted_CSR,
+                'predicted_M10':item.predicted_M10,'predicted_M25':item.predicted_M25,
+                'predicted_M40':item.predicted_M40,
+                'price':item.price
+            })
+        return res
 #if __name__ == '__main__':     
     #db.create_all() 
     #不执行，不然会重新创建表格

@@ -1,7 +1,20 @@
 <template>
 <div class="userAgree">
     <!-- top参数将对话框居上 -->
-    <el-dialog :lock-scroll='true' class='abow_dialog' top='7vh' title="煤种详细信息" custom-class="userDig" center :show-close='true' :closeOnPressEscape='true' :close-on-click-modal="true" :visible.sync="editCoalDetailVisible" :append-to-body="true" width="75%" height='40%'>
+    <el-dialog
+    :lock-scroll='true'
+    class='abow_dialog'
+    top='7vh'
+    title="煤种详细信息"
+    custom-class="userDig"
+    center
+    :show-close='true'
+    :closeOnPressEscape='true'
+    :close-on-click-modal="true"
+    :visible.sync="editCoalDetailVisible"
+    :append-to-body="true"
+    width="75%"
+    height='40%'>
          <!-- 煤基本信息栏 -->
          <el-form ref="dengmiQueryForm" label-width="75px" size="mini" label-position="left">
             <el-row>

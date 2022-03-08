@@ -212,7 +212,7 @@
                       layout="total, sizes, prev, pager, next, jumper"
                       :total="total">
                 </el-pagination>
-            <!-- 查看煤细节信息的对话框, 父传子 -->
+            <!-- 查看煤细节信息的对话框, 父传子, 子：coalDetailedList，父: coalDetailedList; :父传子，@:子传父-->
             <WatchDetailed :coalDetailedList='coalDetailedList' :editCoalDetailVisible='editCoalDetailVisible' @ChangVisible="ChangeCoalDetailVisible" @ChangStatus='ChangShowStatus'></WatchDetailed>
         </div>
 </template>
@@ -328,7 +328,7 @@ export default {
     }
   },
   methods: {
-    // 煤隔行变色
+    // 煤数据隔行变色
     tableRowClassName ({ row, rowIndex }) {
       if (rowIndex % 2 === 0) {
         return 'background-color:#E8E8E8;'

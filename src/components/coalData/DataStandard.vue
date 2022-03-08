@@ -7,7 +7,15 @@
             <el-breadcrumb-item>煤化工国家标准</el-breadcrumb-item>
         </el-breadcrumb>
         <el-card class="box-card">
-            <pl-table :row-style="tableRowClassName" ref='CoalTable' row-height="40" use-virtual border :data='tableData' :header-cell-style="{background:'white',color:'#494949',textAlign:'center', border:'1px solid #BFBFBF',fontSize: '14px'}" big-data-checkbox highlight-current-row :cell-style="{padding:'0px',fontSize: '14px'}" fixedColumnsRoll :height="height">
+            <pl-table
+            :row-style="tableRowClassName"
+            ref='CoalTable'
+            row-height="40"
+            use-virtual border
+            :data='tableData'
+            :header-cell-style="{background:'white',color:'#494949',textAlign:'center', border:'1px solid #BFBFBF',fontSize: '14px'}" big-data-checkbox highlight-current-row :cell-style="{padding:'0px',fontSize: '14px'}"
+            fixedColumnsRoll
+            :height="height">
                 <pl-table-column align="center" fixed label='序号' prop='id' key="1" width='100'></pl-table-column>
                 <pl-table-column align="left" fixed label='文件名称' prop='name' key="1"></pl-table-column>
                 <!-- 下载文件区 -->
@@ -16,14 +24,25 @@
                 label="操作"
                 width="125"
                 align='center'>
-                <template slot-scope="scope">
+                <template slot-scope="scope"> <!-- scope.row.id 获得行id-->
                     <el-button type="text" size="small" @click="showStanard(scope.row.id)">查看文件</el-button>
                 </template>
                 </pl-table-column>
             </pl-table>
         </el-card>
-        <el-dialog :lock-scroll="false" destroy-on-close='true' class='abow_dialog' top='7vh' center :close-on-click-modal="false" :visible.sync="editCoalDetailVisible" :append-to-body="true" width="75%" height='40%'>
-          <el-button class='Exitbutton' plain icon="el-icon-arrow-left" @click="editCoalDetailVisible=false"></el-button>
+        <!--destroy-on-close:关闭时销毁 Dialog 中的元素 -->
+        <el-dialog
+        :lock-scroll="false"
+        destroy-on-close='true'
+        class='abow_dialog'
+        top='7vh'
+        center
+        :close-on-click-modal="false"
+        :visible.sync="editCoalDetailVisible"
+        :append-to-body="true"
+        width="75%"
+        height='40%'>
+          <el-button class='Exitbutton' plain icon="el-icon-arrow-left" @click="editCoalDetailVisible=false"></el-button> <!--左侧透明的离开按键-->
           <img :src='document' style="width:100%">
         </el-dialog>
     </div>
@@ -134,7 +153,6 @@ export default {
         position: require('../../assets/pdfimg/GBT33969-2017高炉富氧喷煤技术规范.png')
       }
       ],
-      url: '/GBT.pdf',
       editCoalDetailVisible: false,
       // 展示显示的煤标准文件
       document: ''
@@ -142,7 +160,7 @@ export default {
   },
   methods: {
     tableRowClassName ({ row, rowIndex }) {
-      if (rowIndex % 2 === 0) {
+      if (rowIndex % 2 === 0) { // 隔行变色
         return 'background-color:#E8E8E8;'
       }
     },

@@ -75,7 +75,7 @@
             </pl-table-column>
           </pl-table>
             <span slot="footer" class='dialog-footer'>
-                <el-button type="primary"> 上传至数据库 </el-button>
+                <!-- <el-button type="primary"> 上传至数据库 </el-button> -->
                 <el-button @click="editBlendCoalVisible = false"> 取消 </el-button>
             </span>
         </el-dialog>
@@ -128,6 +128,7 @@
           </el-form>
           <span slot="footer" class='dialog-footer'>
               <el-button type="primary" @click="predictRatio"> 开始预测 </el-button>
+              <el-button type="danger" @click="uploadBlendCoalData"> 上传至数据库 </el-button>
               <el-button @click="editRatioCoalVisible = false"> 取消 </el-button>
           </span>
         </el-dialog>
@@ -251,7 +252,7 @@ export default {
     },
     predictRatio() { // 传递数据并运行配煤最优比遗传算法
       for (var i = 0; i < this.multipleSelectionData.length; i++) {
-        this.preparedDataforRatio.push({ coal_price: this.multipleSelectionData[i].coal_price, coke_CSR: this.multipleSelectionData[i].coke_CSR, coke_CRI: this.multipleSelectionData[i].coke_CRI, coke_M10: this.multipleSelectionData[i].coke_M10, coke_M25: this.multipleSelectionData[i].coke_M25 })
+        this.preparedDataforRatio.push({ coalType: this.multipleSelectionData[i].coal_type, coalName: this.multipleSelectionData[i].coal_name, coal_price: this.multipleSelectionData[i].coal_price, coke_CSR: this.multipleSelectionData[i].coke_CSR, coke_CRI: this.multipleSelectionData[i].coke_CRI, coke_M10: this.multipleSelectionData[i].coke_M10, coke_M25: this.multipleSelectionData[i].coke_M25 })
       }
       this.newRatio = []
       this.preparedDataforRatio.push(this.paraRange)
@@ -299,6 +300,10 @@ export default {
       this.preparedDataforRatio = []
       this.returnRatio = ''
       this.coalRatio = this.newRatio
+    },
+    uploadBlendCoalData() { // 将最优配煤后的结果上传至数据库中
+      // this.editCoalDetailVisible = false
+      this.$http.post('upload_blend_coaldata')
     }
   }
 }

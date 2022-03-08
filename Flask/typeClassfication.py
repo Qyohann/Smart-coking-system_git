@@ -57,8 +57,8 @@ def nullreplace(data,nullmap):
 def coaltypefind(coal):
     coal = pd.read_csv(coal,usecols=['Vm','H','G','Y','b'],dtype=str)
     coal = pd.DataFrame(np.tile(coal.values,(27,1)),columns=['Vm','H','G','Y','b'])
-    twob = pd.read_csv("D:/Documents_summary/Code/Web front-end/Vue project/Project1/vue_shop/Flask/2b.csv",usecols=['Vm','H','G','Y','b'],dtype=str)
-    ab = pd.read_csv("D:/Documents_summary/Code/Web front-end/Vue project/Project1/vue_shop/Flask/a+b.csv",dtype=str)
+    twob = pd.read_csv("./Flask/2b.csv",usecols=['Vm','H','G','Y','b'],dtype=str)
+    ab = pd.read_csv("./Flask/a+b.csv",dtype=str)
     typename = ab.iloc[:,:1]
     ab = ab.iloc[:,1:]
 

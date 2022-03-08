@@ -1,6 +1,6 @@
 <template>
     <div class='welcomeContainer'>
-        <div class='img'>
+        <div>
             <div class='title'>
                 <span>系统使用介绍</span>
             </div>
@@ -52,7 +52,6 @@
             title="用户使用协议"
             :visible.sync="showuseragreement"
             width="80%"
-            :before-close="handleClose"
             :append-to-body='true'
             center
             > <!-- 不用body-append-to-body, dialog内容会与父级body信息重叠-->
@@ -146,15 +145,15 @@ export default {
     closeUseragreement() {
       this.show_useragreement = false
     },
-    CheckUserAgreement() {
-      var item = sessionStorage.getItem('showUserAgreement')
+    CheckUserAgreement() { // 检查用户状态
+      var item = sessionStorage.getItem('showUserAgreement') // 获得session中的showUserAgreement, 在Login处已定义过
       if (item === 'true') { // 判断cookie状态，如果是true则弹出用户协议，false则不弹出
         this.showuseragreement = true
         console.log(this.showuseragreement)
       }
-      sessionStorage.setItem('showUserAgreement', JSON.stringify('false'))
+      sessionStorage.setItem('showUserAgreement', JSON.stringify('false')) // 显示用用户协议，变false
     },
-    logout () {
+    logout () { // 如果选择不同意协议，则返回到首页
       this.$router.push('/login')
     }
   }
@@ -163,7 +162,7 @@ export default {
 
 <style lang="less" scoped>
 
-@media screen and (max-width: 1300px){ /*当屏幕尺寸小于1500px时，应用下面的CSS样式, 笔记本电脑为1280*720*/
+@media screen and (max-width: 1300px){ /*当屏幕尺寸小于1300px时，应用下面的CSS样式, 笔记本电脑为1280*720*/
     .title{ //control the upper title "使用介绍"
         text-align: center;
         margin:0;
@@ -258,7 +257,7 @@ export default {
     }
 }
 
-@media screen and (min-width: 1300px){ /*当屏幕尺寸小于600px时，应用下面的CSS样式， 台式电脑为1980*1080 */
+@media screen and (min-width: 1300px){ /*当屏幕尺寸大于1300px时，应用下面的CSS样式， 台式电脑为1980*1080 */
     .title{ //control the upper title "使用介绍"
         text-align: center;
         margin:0;

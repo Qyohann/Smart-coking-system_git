@@ -1,22 +1,24 @@
-from flask import Flask,redirect,request,url_for
-from flask_cors import CORS
-from coalData import CoalDataGeneration,app,db
-from flask import jsonify
-import json
-from typeClassfication import coaltypefind
-import csv
-import tensorflow as tf
+from flask import Flask,redirect,request,url_for # Flask库
+from flask_cors import CORS #跨域请求
+from coalData import CoalDataGeneration,BlendCoalDataStoringGeneration,app,db #读取煤数据和数据库
+from flask import jsonify #转换成json格式
+import json #导入json数据
+from typeClassfication import coaltypefind #寻找煤类型
+import csv #csv读写
+import tensorflow as tf #模型导入和加载
 from tensorflow import keras 
 import numpy as np
-import geatpy as ea
-from genertic_algorithm_geatpy1 import MyProblem
-import pandas as pd
+import geatpy as ea #遗传算法
+from genertic_algorithm_geatpy1 import MyProblem #遗传算法
+import pandas as pd #pandas读取表格数据
 from pandas.core.frame import DataFrame
-from ModelPredict import modelpredict
+from ModelPredict import modelpredict #专家系统预测焦炭质量
 
+#加载焦炭质量预测模型
 model = keras.models.load_model('./Flask/model_weight/predict_model.h5') #相对于terminal的路径
 model_expert = pd.read_pickle('./Flask/model_weight/Model_DIS_CSR.pkl') #专家系统预测焦炭质量
 
+#Flask跨域设置
 CORS(app, supports_credentials=True) #两个文件都最好跨域
 CORS(app, resources={r'/*': {'origins': '*'}})
 
@@ -27,30 +29,27 @@ upload_classify = 0 #用于按钮点击上传煤分类
 def login():
     if request.method == 'POST':
         user = request.data   # POST用该方式
-        print(user)
         return "success1"
 
-#煤数据获取
+#煤数据关键词查询和获取
 @app.route('/coalData',methods=['POST','GET'])
 def getData():
-    query_pra = request.values.get('query')
-    print(query_pra)
+    query_pra = request.values.get('query') #获取query的请求数据
     if request.method == 'GET':
-        if query_pra == '':
-            CoalData = CoalDataGeneration.query.order_by(CoalDataGeneration.id.desc()).all()
+        if query_pra == '': #如果什么都没有输入按查询，则返回所有的煤数据
+            CoalData = CoalDataGeneration.query.order_by(CoalDataGeneration.id.desc()).all() #获取数据
             res = {
             "msg": CoalDataGeneration.response(None, CoalData=CoalData)
             }
             return jsonify(res)
-        else:
+        else: # 否则索引到输入的关键词数据
             query_result = CoalDataGeneration.query.filter(CoalDataGeneration.coal_type == query_pra).all()
-            print(query_result)
             res = {
             "msg": CoalDataGeneration.response(None, CoalData=query_result)
             }
             return jsonify(res)
 
-#根据煤id查询煤细数据
+#根据煤id查询煤的细数据(页面中为点击查看)
 @app.route('/coalDetailedData',methods=['POST','GET'])
 def getDetailedData():
     query_id = request.values.get('0') # 0代表id对应的键值
@@ -136,7 +135,7 @@ def getClassifyeResult():
                     
 
             response_result.append(classified_result)
-            global upload_classify
+            global upload_classify # 预测的煤类别数据，全局变量
             upload_classify = response_result
             para_dict = {} # 要放末尾，不然会被覆盖
             classified_result = {} # 要放末尾，不然会被覆盖
@@ -149,8 +148,8 @@ def uploadClassifyeResult():
     if len(upload_classify) != 0:
         for i in upload_classify:
             print(i['predicted_type'])
-            query_data = CoalDataGeneration.query.filter(CoalDataGeneration.id == i['id']).update({'coal_type':str(i['predicted_type'])})
-            db.session.commit()
+            query_data = CoalDataGeneration.query.filter(CoalDataGeneration.id == i['id']).update({'coal_type':str(i['predicted_type'])}) #筛选id+更新
+            db.session.commit() #数据上传至数据库
     return 'upload successfully'
 
 #焦炭质量预测(AI模型)
@@ -171,9 +170,9 @@ def getCokeQualityfyeResultAI():
             single_data.append(data['X'])
             single_data.append(data['Y'])
             np_predict_data.append(single_data)
-        x_max = np.array([12.024,21.660,39.800,4.410,103.000,41.000,31.000])
+        x_max = np.array([12.024,21.660,39.800,4.410,103.000,41.000,31.000]) #可能待修改的归一化值
         x_min = np.array([0.68,7.03,21.36,0.15,56.46,16.00,11.63])
-        np_predict_data = (np_predict_data - x_min)/(x_max - x_min)
+        np_predict_data = (np_predict_data - x_min)/(x_max - x_min) #数据归一化
         np_predict_data = np.array(np_predict_data)
         np_predict_data = model.predict(np_predict_data) #模型的预测结果
         np_predict_data = np_predict_data.astype(np.float64)
@@ -302,12 +301,28 @@ def predictBlendCoal():
         return_result = [{"blendCoal_mad":blendCoal_mad,'blendCoal_ad':blendCoal_ad,'blendCoal_vdaf':blendCoal_vdaf,'blendCoal_std':blendCoal_std,'blendCoal_G':blendCoal_G,'blendCoal_X':blendCoal_X,'blendCoal_Y':blendCoal_Y}]
         return jsonify(return_result)
 
+stored_singlecoal_name = 0 #用于写入历史配煤数据库的煤名称，包含煤的所有信息
+stored_singlecoal_ratio = 0 #用于写入历史配煤数据库的煤比例
+stored_price = 0 #用于写入历史配煤数据库的煤价格
+stored_CRI_min = 0
+stored_CRI_max = 0 
+stored_CSR_min = 0
+stored_CSR_max = 0
+stored_M10_min = 0
+stored_M10_max = 0
+stored_M25_min = 0
+stored_M25_max = 0
+
 #最优配煤比预测
 @app.route('/predictBestRatio',methods=['POST','GET'])
 def predictBestRatio():
     if request.method == 'POST':
         prepared_data = request.data
         prepared_data = json.loads(prepared_data) #必须要加才能获得正常数组数据
+
+        global stored_singlecoal_name
+        stored_singlecoal_name = prepared_data
+
         inputDim = len(prepared_data[:-1]) #输入维数，参数1
         print(inputDim)
         print(prepared_data)
@@ -338,6 +353,24 @@ def predictBestRatio():
         M10_max = float(prepared_data[-1][5])
         M25_min = float(prepared_data[-1][6])
         M25_max = float(prepared_data[-1][7])
+        
+        global stored_CRI_min
+        global stored_CRI_max 
+        global stored_CSR_min
+        global stored_CSR_max
+        global stored_M10_min
+        global stored_M10_max
+        global stored_M25_min
+        global stored_M25_max
+
+        stored_CRI_min = CRI_min
+        stored_CRI_max = CRI_max
+        stored_CSR_min = CSR_min
+        stored_CSR_max = CSR_max
+        stored_M10_min = M10_min
+        stored_M10_max = M10_max
+        stored_M25_min = M25_min
+        stored_M25_max = M25_max
 
         problem = MyProblem(inputDim,lb,ub,lbin,ubin,price_array,CRI_value,CSR_value,M10_value,M25_value,CRI_min,CRI_max,CSR_min,CSR_max,M10_min,M10_max,M25_min,M25_max) # 生成问题对象
         Encoding = 'RI' # 编码方式
@@ -352,6 +385,11 @@ def predictBestRatio():
         [NDSet, population] = myAlgorithm.run() # 执行算法模板
         population.save() # 把最后一代种群的信息保存到文件中
 
+        global stored_singlecoal_ratio
+        global stored_price
+        stored_singlecoal_ratio = NDSet.Phen
+        stored_price = NDSet.ObjV
+
         print("Optimal ratio for coal blending：",NDSet.Phen) # 返回一个np.array数组或是None
         print("Lowest cost price：",NDSet.ObjV)
         
@@ -359,11 +397,197 @@ def predictBestRatio():
             return_result = []
             return_result.append(NDSet.Phen.tolist()) #第一个最优配煤比
             return_result.append(NDSet.ObjV.tolist()) #第二个最低价格
+            print(return_result)
         else:
             return_result = ['Error']
         return jsonify(return_result)
 
+#获得配煤历史数据库的数据
+@app.route('/getcoalBlendData',methods=['POST','GET'])
+def getBlendData():
+    if request.method == 'GET':
+        CoalData = BlendCoalDataStoringGeneration.query.order_by(BlendCoalDataStoringGeneration.id.desc()).all() #获取数据
+        res = {
+        "msg": BlendCoalDataStoringGeneration.response(None, CoalData=CoalData)
+        }
+        return jsonify(res)
+
+#上传最优配煤数据至数据库
+@app.route('/upload_blend_coaldata',methods=['POST','GET'])
+def uploadBlendCoalData():
+    if len(stored_singlecoal_ratio) != 0 and len(stored_price) !=0 and len(stored_singlecoal_name) !=0: #判断预测的配煤比、价格以及煤的名字是否是空的
+        stored_singlecoal_name_array = [] #存储单纯的煤名字,['红果', '东源后所', '晋茂']
+        for i in stored_singlecoal_name[:-1]: #最后一个是所需焦炭质量范围，不需要
+            stored_singlecoal_name_array.append(i['coalName'])
+        stored_singlecoal_ratio_second = stored_singlecoal_ratio.tolist() #ratio从array转化成list，用新变量保存，否则会出错
+        
+        final_stored_singlecoal_name_array = [] #存储最终的混煤中单煤的名称
+        final_stored_singlecoal_ratio_second = [] #存储最终的单煤比例
+
+        for name,ratio in zip(stored_singlecoal_name_array,range(len(stored_singlecoal_ratio_second[0]))): #遍历单煤名字及其对应比例
+            if stored_singlecoal_ratio_second[0][ratio] >= 0.03: #如果有配煤比为0的煤，则不加入数组显示
+                final_stored_singlecoal_name_array.append(name)
+                final_stored_singlecoal_ratio_second.append(stored_singlecoal_ratio_second[0][ratio])
+
+        print(stored_CRI_min,stored_CRI_max,stored_CSR_min,stored_CSR_max,stored_M10_min,stored_M10_max,stored_M25_min,stored_M25_max)
+        #将配煤结果和最优比写入数据库
+        if len(final_stored_singlecoal_name_array) == 1:
+            new_blendCoalData = BlendCoalDataStoringGeneration(price=stored_price[0][0],
+                                                            first_coal=final_stored_singlecoal_name_array[0],
+                                                            first_ratio=final_stored_singlecoal_ratio_second[0]*100,
+                                                            predicted_CRI=str(stored_CRI_min)+'-'+str(stored_CRI_max),
+                                                            predicted_CSR=str(stored_CSR_min)+'-'+str(stored_CSR_max),
+                                                            predicted_M10=str(stored_M10_min)+'-'+str(stored_M10_max),
+                                                            predicted_M25=str(stored_M25_min)+'-'+str(stored_M25_max)
+                                                            )
+        elif len(final_stored_singlecoal_name_array) == 2:
+            new_blendCoalData = BlendCoalDataStoringGeneration(price=stored_price[0][0],
+                                                            first_coal=final_stored_singlecoal_name_array[0],
+                                                            first_ratio=final_stored_singlecoal_ratio_second[0]*100,
+                                                            second_coal=final_stored_singlecoal_name_array[1],
+                                                            second_ratio=final_stored_singlecoal_ratio_second[1]*100,
+                                                            predicted_CRI=str(stored_CRI_min)+'-'+str(stored_CRI_max),
+                                                            predicted_CSR=str(stored_CSR_min)+'-'+str(stored_CSR_max),
+                                                            predicted_M10=str(stored_M10_min)+'-'+str(stored_M10_max),
+                                                            predicted_M25=str(stored_M25_min)+'-'+str(stored_M25_max)
+                                                            )
+        elif len(final_stored_singlecoal_name_array) == 3:
+            new_blendCoalData = BlendCoalDataStoringGeneration(price=stored_price[0][0],
+                                                            first_coal=final_stored_singlecoal_name_array[0],
+                                                            first_ratio=final_stored_singlecoal_ratio_second[0]*100,
+                                                            second_coal=final_stored_singlecoal_name_array[1],
+                                                            second_ratio=final_stored_singlecoal_ratio_second[1]*100,
+                                                            third_coal=final_stored_singlecoal_name_array[2],
+                                                            third_ratio=final_stored_singlecoal_ratio_second[2]*100,
+                                                            predicted_CRI=str(stored_CRI_min)+'-'+str(stored_CRI_max),
+                                                            predicted_CSR=str(stored_CSR_min)+'-'+str(stored_CSR_max),
+                                                            predicted_M10=str(stored_M10_min)+'-'+str(stored_M10_max),
+                                                            predicted_M25=str(stored_M25_min)+'-'+str(stored_M25_max)
+                                                            )
+        elif len(final_stored_singlecoal_name_array) == 4:
+            new_blendCoalData = BlendCoalDataStoringGeneration(price=stored_price[0][0],
+                                                            first_coal=final_stored_singlecoal_name_array[0],
+                                                            first_ratio=final_stored_singlecoal_ratio_second[0]*100,
+                                                            second_coal=final_stored_singlecoal_name_array[1],
+                                                            second_ratio=final_stored_singlecoal_ratio_second[1]*100,
+                                                            third_coal=final_stored_singlecoal_name_array[2],
+                                                            third_ratio=final_stored_singlecoal_ratio_second[2]*100,
+                                                            fourth_coal=final_stored_singlecoal_name_array[3],
+                                                            fourth_ratio=final_stored_singlecoal_ratio_second[3]*100,
+                                                            predicted_CRI=str(stored_CRI_min)+'-'+str(stored_CRI_max),
+                                                            predicted_CSR=str(stored_CSR_min)+'-'+str(stored_CSR_max),
+                                                            predicted_M10=str(stored_M10_min)+'-'+str(stored_M10_max),
+                                                            predicted_M25=str(stored_M25_min)+'-'+str(stored_M25_max)
+                                                            )
+        elif len(final_stored_singlecoal_name_array) == 5:
+            new_blendCoalData = BlendCoalDataStoringGeneration(price=stored_price[0][0],
+                                                            first_coal=final_stored_singlecoal_name_array[0],
+                                                            first_ratio=final_stored_singlecoal_ratio_second[0]*100,
+                                                            second_coal=final_stored_singlecoal_name_array[1],
+                                                            second_ratio=final_stored_singlecoal_ratio_second[1]*100,
+                                                            third_coal=final_stored_singlecoal_name_array[2],
+                                                            third_ratio=final_stored_singlecoal_ratio_second[2]*100,
+                                                            fourth_coal=final_stored_singlecoal_name_array[3],
+                                                            fourth_ratio=final_stored_singlecoal_ratio_second[3]*100,
+                                                            fifth_coal=final_stored_singlecoal_name_array[4],
+                                                            fifth_ratio=final_stored_singlecoal_ratio_second[4]*100,
+                                                            predicted_CRI=str(stored_CRI_min)+'-'+str(stored_CRI_max),
+                                                            predicted_CSR=str(stored_CSR_min)+'-'+str(stored_CSR_max),
+                                                            predicted_M10=str(stored_M10_min)+'-'+str(stored_M10_max),
+                                                            predicted_M25=str(stored_M25_min)+'-'+str(stored_M25_max)
+                                                            )
+        elif len(final_stored_singlecoal_name_array) == 6:
+            new_blendCoalData = BlendCoalDataStoringGeneration(price=stored_price[0][0],
+                                                            first_coal=final_stored_singlecoal_name_array[0],
+                                                            first_ratio=final_stored_singlecoal_ratio_second[0]*100,
+                                                            second_coal=final_stored_singlecoal_name_array[1],
+                                                            second_ratio=final_stored_singlecoal_ratio_second[1]*100,
+                                                            third_coal=final_stored_singlecoal_name_array[2],
+                                                            third_ratio=final_stored_singlecoal_ratio_second[2]*100,
+                                                            fourth_coal=final_stored_singlecoal_name_array[3],
+                                                            fourth_ratio=final_stored_singlecoal_ratio_second[3]*100,
+                                                            fifth_coal=final_stored_singlecoal_name_array[4],
+                                                            fifth_ratio=final_stored_singlecoal_ratio_second[4]*100,
+                                                            sixth_coal=final_stored_singlecoal_name_array[5],
+                                                            sixth_ratio=final_stored_singlecoal_ratio_second[5]*100,
+                                                            predicted_CRI=str(stored_CRI_min)+'-'+str(stored_CRI_max),
+                                                            predicted_CSR=str(stored_CSR_min)+'-'+str(stored_CSR_max),
+                                                            predicted_M10=str(stored_M10_min)+'-'+str(stored_M10_max),
+                                                            predicted_M25=str(stored_M25_min)+'-'+str(stored_M25_max),
+                                                            )
+        elif len(final_stored_singlecoal_name_array) == 7:
+            new_blendCoalData = BlendCoalDataStoringGeneration(price=stored_price[0][0],
+                                                            first_coal=final_stored_singlecoal_name_array[0],
+                                                            first_ratio=final_stored_singlecoal_ratio_second[0]*100,
+                                                            second_coal=final_stored_singlecoal_name_array[1],
+                                                            second_ratio=final_stored_singlecoal_ratio_second[1]*100,
+                                                            third_coal=final_stored_singlecoal_name_array[2],
+                                                            third_ratio=final_stored_singlecoal_ratio_second[2]*100,
+                                                            fourth_coal=final_stored_singlecoal_name_array[3],
+                                                            fourth_ratio=final_stored_singlecoal_ratio_second[3]*100,
+                                                            fifth_coal=final_stored_singlecoal_name_array[4],
+                                                            fifth_ratio=final_stored_singlecoal_ratio_second[4]*100,
+                                                            sixth_coal=final_stored_singlecoal_name_array[5],
+                                                            sixth_ratio=final_stored_singlecoal_ratio_second[5]*100,
+                                                            seventh_coal=final_stored_singlecoal_name_array[6],
+                                                            seventh_ratio=final_stored_singlecoal_ratio_second[6]*100,
+                                                            predicted_CRI=str(stored_CRI_min)+'-'+str(stored_CRI_max),
+                                                            predicted_CSR=str(stored_CSR_min)+'-'+str(stored_CSR_max),
+                                                            predicted_M10=str(stored_M10_min)+'-'+str(stored_M10_max),
+                                                            predicted_M25=str(stored_M25_min)+'-'+str(stored_M25_max)
+                                                            )
+        elif len(final_stored_singlecoal_name_array) == 8:
+            new_blendCoalData = BlendCoalDataStoringGeneration(price=stored_price[0][0],
+                                                            first_coal=final_stored_singlecoal_name_array[0],
+                                                            first_ratio=final_stored_singlecoal_ratio_second[0]*100,
+                                                            second_coal=final_stored_singlecoal_name_array[1],
+                                                            second_ratio=final_stored_singlecoal_ratio_second[1]*100,
+                                                            third_coal=final_stored_singlecoal_name_array[2],
+                                                            third_ratio=final_stored_singlecoal_ratio_second[2]*100,
+                                                            fourth_coal=final_stored_singlecoal_name_array[3],
+                                                            fourth_ratio=final_stored_singlecoal_ratio_second[3]*100,
+                                                            fifth_coal=final_stored_singlecoal_name_array[4],
+                                                            fifth_ratio=final_stored_singlecoal_ratio_second[4]*100,
+                                                            sixth_coal=final_stored_singlecoal_name_array[5],
+                                                            sixth_ratio=final_stored_singlecoal_ratio_second[5]*100,
+                                                            seventh_coal=final_stored_singlecoal_name_array[6],
+                                                            seventh_ratio=final_stored_singlecoal_ratio_second[6]*100,
+                                                            eighth_coal=final_stored_singlecoal_name_array[7],
+                                                            eighth_ratio=final_stored_singlecoal_ratio_second[7]*100,
+                                                            predicted_CRI=str(stored_CRI_min)+'-'+str(stored_CRI_max),
+                                                            predicted_CSR=str(stored_CSR_min)+'-'+str(stored_CSR_max),
+                                                            predicted_M10=str(stored_M10_min)+'-'+str(stored_M10_max),
+                                                            predicted_M25=str(stored_M25_min)+'-'+str(stored_M25_max)
+                                                            )
+        elif len(final_stored_singlecoal_name_array) == 9:
+            new_blendCoalData = BlendCoalDataStoringGeneration(price=stored_price[0][0],
+                                                            first_coal=final_stored_singlecoal_name_array[0],
+                                                            first_ratio=final_stored_singlecoal_ratio_second[0]*100,
+                                                            second_coal=final_stored_singlecoal_name_array[1],
+                                                            second_ratio=final_stored_singlecoal_ratio_second[1]*100,
+                                                            third_coal=final_stored_singlecoal_name_array[2],
+                                                            third_ratio=final_stored_singlecoal_ratio_second[2]*100,
+                                                            fourth_coal=final_stored_singlecoal_name_array[3],
+                                                            fourth_ratio=final_stored_singlecoal_ratio_second[3]*100,
+                                                            fifth_coal=final_stored_singlecoal_name_array[4],
+                                                            fifth_ratio=final_stored_singlecoal_ratio_second[4]*100,
+                                                            sixth_coal=final_stored_singlecoal_name_array[5],
+                                                            sixth_ratio=final_stored_singlecoal_ratio_second[5]*100,
+                                                            seventh_coal=final_stored_singlecoal_name_array[6],
+                                                            seventh_ratio=final_stored_singlecoal_ratio_second[6]*100,
+                                                            eighth_coal=final_stored_singlecoal_name_array[7],
+                                                            eighth_ratio=final_stored_singlecoal_ratio_second[7]*100,
+                                                            ninth_coal=final_stored_singlecoal_name_array[8],
+                                                            ninth_ratio=final_stored_singlecoal_ratio_second[8]*100,
+                                                            predicted_CRI=str(stored_CRI_min)+'-'+str(stored_CRI_max),
+                                                            predicted_CSR=str(stored_CSR_min)+'-'+str(stored_CSR_max),
+                                                            predicted_M10=str(stored_M10_min)+'-'+str(stored_M10_max),
+                                                            predicted_M25=str(stored_M25_min)+'-'+str(stored_M25_max)
+                                                            )                                                   
+        db.session.add(new_blendCoalData)
+        db.session.commit()
+    return 'upload successfully'
 
 if __name__ == '__main__':
     app.config['JSON_AS_ASCII'] = False
-    app.run('0.0.0.0', debug=False)
+    app.run('0.0.0.0', debug=True) # debug 为调整模式

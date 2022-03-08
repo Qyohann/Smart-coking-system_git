@@ -6,16 +6,16 @@
             <el-breadcrumb-item>煤数据处理</el-breadcrumb-item>
             <el-breadcrumb-item>煤数据统计分析</el-breadcrumb-item>
         </el-breadcrumb>
-        <el-card class="box-card">
+        <el-card class="box-card"> <!-- 背景白板 -->
         <!-- 表格用来占位置 -->
-          <ChartPie ref="chart_pie_one"/>
-          <Chartbar ref="chart_bar_one"/>
+          <ChartPie ref="chart_pie_one"/> <!-- 饼形图 -->
+          <Chartbar ref="chart_bar_one"/> <!-- 条形图 -->
         </el-card>
     </div>
 </template>
 
 <script>
-import ChartPie from './Diagram(type_pie)'
+import ChartPie from './Diagram(type_pie)' // 子组件
 import Chartbar from './Diagram(price_bar)'
 
 export default {
@@ -37,7 +37,7 @@ export default {
   mounted () {
   },
   created() {
-    this.getCoalList()
+    this.getCoalList() // 获得煤数据
     this.getCoalList2()
   },
   methods: {
@@ -47,11 +47,11 @@ export default {
         var obj = {}
         var k = 0
         for (var i = 0, len = this.coalList.length; i < len; i++) {
-          k = this.coalList[i].coal_type
+          k = this.coalList[i].coal_type // 获得煤类型
           if (obj[k]) {
             obj[k]++
           } else {
-            obj[k] = 1
+            obj[k] = 1 // 计算不同煤类型的个数
           }
         }
         for (var o in obj) {
